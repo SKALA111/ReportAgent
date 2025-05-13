@@ -32,8 +32,8 @@
 ## Directory Structure
 project-root/
 │
-├── data/                  # 스타트업 관련 PDF 및 원본 문서
-│   ├── sample1.pdf
+├── data/                  # 스타트업 리스트 및 관련 문서
+│   ├── startups.csv
 │   └── sample2.pdf
 │
 ├── agents/                # 평가 기준별 Agent 모듈
