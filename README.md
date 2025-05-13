@@ -38,5 +38,7 @@
 └── README.md
 
 ## Contributors 
-- 김철수 : Prompt Engineering, Agent Design 
-- 최영희 : PDF Parsing, Retrieval Agent 
+- 강창진
+- 김민혁
+- 김준혁
+- 김효준
