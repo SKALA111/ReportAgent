@@ -30,12 +30,32 @@
 (그래프 이미지)
 
 ## Directory Structure
-├── data/                  # 스타트업 PDF 문서
+project-root/
+│
+├── data/                  # 스타트업 관련 PDF 및 원본 문서
+│   ├── sample1.pdf
+│   └── sample2.pdf
+│
 ├── agents/                # 평가 기준별 Agent 모듈
-├── prompts/               # 프롬프트 템플릿
-├── outputs/               # 평가 결과 저장
-├── app.py                 # 실행 스크립트
-└── README.md
+│   ├── search_agent.py
+│   ├── tech_agent.py
+│   ├── market_agent.py
+│   ├── owner_agent.py
+│   ├── finance_agent.py
+│   ├── investment_agent.py
+│   └── report_agent.py
+│
+├── prompts/               # 프롬프트 템플릿 및 기준
+│   ├── base_templates.py
+│   └── scoring_criteria.json
+│
+├── outputs/               # 평가 결과 및 보고서 저장
+│   ├── results.json
+│   └── final_report.md
+│
+├── app.py                 # 전체 분석 실행 스크립트
+└── README.md              # 프로젝트 설명
+
 
 ## Contributors 
 - 강창진
