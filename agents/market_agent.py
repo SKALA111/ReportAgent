@@ -45,19 +45,28 @@ client = chromadb.Client()
 collection = client.get_or_create_collection("market_docs")
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
+import time
+
 def store_documents(docs: list[str]):
+    """
+    문서들을 임베딩하여 벡터 저장소에 저장합니다.
+    """    
     embeddings = embed_model.encode(docs).tolist()
+    timestamp = int(time.time())  # 현재 타임스탬프
     for i, doc in enumerate(docs):
+        unique_id = f"market_{timestamp}_{i}"  # 타임스탬프와 인덱스를 결합
         collection.add(
             documents=[doc],
-            ids=[f"market_{i}"],
+            ids=[unique_id],
             embeddings=[embeddings[i]]
         )
 
 def retrieve_similar(query: str, top_k=3) -> list[str]:
     embedding = embed_model.encode(query).tolist()
     results = collection.query(query_embeddings=[embedding], n_results=top_k)
-    return results["documents"][0] if results["documents"] else []
+    if not results["documents"]:
+        return []
+    return results["documents"][0]
 
 # MarketAgent 클래스 정의
 class MarketAgent(Runnable):

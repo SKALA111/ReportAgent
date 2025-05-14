@@ -1,3 +1,4 @@
+import csv
 from langgraph.graph import StateGraph
 from agents.search_agent import SearchAgent
 from agents.tech_agent import TechAgent
@@ -18,6 +19,19 @@ workflow.set_finish_point("Market")
 
 app = workflow.compile()
 
+def analyze_startups(file_path):
+    results = []
+    with open(file_path, mode="r", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            startup_name = row["스타트업"]
+            print(f"Analyzing startup: {startup_name}")
+            result = app.invoke({"startup_name": startup_name})
+            results.append({"startup_name": startup_name, "result": result})
+    return results
+
 if __name__ == "__main__":
-    result = app.invoke({"startup_name": "퓨리오사AI"})
-    print(result)
+    file_path = "data/startups.csv"
+    analysis_results = analyze_startups(file_path)
+    for res in analysis_results:
+        print(f"Startup: {res['startup_name']}, Analysis Result: {res['result']}")
