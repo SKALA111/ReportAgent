@@ -7,15 +7,18 @@ from agents.market_agent import MarketAgent
 search = SearchAgent(model="gpt-4")
 tech = TechAgent(model="gpt-4")
 market = MarketAgent(model="gpt-4")
+finance = MarketAgent(model="gpt-4")
 
 workflow = StateGraph(dict)
 workflow.add_node("Search", search)
 workflow.add_node("Tech", tech)
 workflow.add_node("Market", market)
+workflow.add_node("Finance", finance)
 workflow.set_entry_point("Search")
 workflow.add_edge("Search", "Tech")
 workflow.add_edge("Tech", "Market")
-workflow.set_finish_point("Market")
+workflow.add_edge("Market", "Finance")
+workflow.set_finish_point("Finance")
 
 app = workflow.compile()
 

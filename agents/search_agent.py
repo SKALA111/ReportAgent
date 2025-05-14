@@ -88,7 +88,4 @@ class SearchAgent(Runnable):
         print("문서를 벡터 저장소에 저장합니다.")
         store_documents(docs)
 
-        return {
-            "search_docs": docs,        # 사용자가 확인 가능
-            "startup_name": name        # TechAgent 전달용
-        }
+        return {"search_docs": docs}
