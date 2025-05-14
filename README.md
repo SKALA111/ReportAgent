@@ -29,7 +29,7 @@
 | LLM          | GPT-4 via OpenAI API                   |
 | Retrieval    | Chroma + SentenceTransformers          |
 | Search API   | Serper API (Google 기반 웹 검색)        |
-|--------------|----------------------------------------|
+
 
 ## Agents
  
@@ -71,7 +71,7 @@ project-root/
 ```
 
 ## Contributors 
-- 강창진
-- 김민혁
-- 김준혁
-- 김효준
+- 강창진 : Tech/Market/Finance Agent 구현
+- 김민혁 : Agent Architecture 설계
+- 김준혁 : 검색 + RAG + Chroma 처리
+- 김효준 : 프롬프트 엔지니어 + 투자 판단 설계
