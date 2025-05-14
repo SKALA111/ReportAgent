@@ -40,4 +40,4 @@ class TechAgent(Runnable):
         print("기술 요약을 생성 중입니다.")
         result = ask_with_context(prompt, context=[], model=self.model)
 
-        return {"tech_summary": result}
+        return {"tech_summary": result, "startup_name": name}

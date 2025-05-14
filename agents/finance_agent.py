@@ -30,30 +30,33 @@ class FinanceAgent(Runnable):
         self.model = model
 
     def invoke(self, input_data: dict, config=None) -> dict:
+        print(f"FinanceAgent input_data: {input_data}")
         startup_name = input_data.get("startup_name", "").strip()
         if not startup_name:
             return {"finance_analysis": "FinanceAgent: startup_name이 없습니다."}
-
+    
         print(f"🔍 {startup_name}의 재무 분석을 시작합니다.")
-
+    
         # 유사 기업 검색
-        query_doc = format_company_doc({"스타트업": startup_name, "분야": "", "특징": "", "성장 포인트": ""})
+        query_doc = format_company_doc({"스타트업": startup_name, "분야": "", "특징": "",   "성장 포인트": ""})
         query_embedding = embed_model.encode(query_doc).tolist()
-
+    
         results = collection.query(query_embeddings=[query_embedding], n_results=4)
-        context_docs = results["documents"]
-
+        
+        # 💥 여기서 평탄화
+        context_docs = [doc for sublist in results["documents"] for doc in sublist]
+    
         if not context_docs:
             return {"finance_analysis": "유사한 기업 정보를 찾을 수 없습니다."}
-
+    
         # 프롬프트 생성
         context = "\n\n".join(context_docs)
-        prompt = FINANCE_AGENT_PROMPT.replace("{{context}}", context).replace("{{startup_name}}", startup_name)
-
+        prompt = FINANCE_AGENT_PROMPT.replace("{{context}}", context).replace(" {{startup_name}}", startup_name)
+    
         # OpenAI API 호출
         print(f"💡 {startup_name}의 재무 분석 생성 중...")
         result = ask_with_context(prompt, context=context_docs, model=self.model)
-
+    
         return {"finance_analysis": result}
 
 # 데이터 초기화 함수

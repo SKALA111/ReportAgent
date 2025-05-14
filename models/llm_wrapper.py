@@ -19,7 +19,15 @@ def ask_with_context(prompt: str, context: list[str], model: str = "gpt-4") -> s
     Returns:
         str: GPT의 응답 텍스트
     """
-    context_text = "\n\n".join(context)
+    # context 내부에 list가 섞여 있는 경우를 처리
+    flattened_context = []
+    for item in context:
+        if isinstance(item, list):
+            flattened_context.extend(item)
+        else:
+            flattened_context.append(item)
+
+    context_text = "\n\n".join(flattened_context)
 
     full_prompt = f"""
     [Context]

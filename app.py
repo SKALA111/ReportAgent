@@ -3,12 +3,15 @@ from langgraph.graph import StateGraph
 from agents.search_agent import SearchAgent
 from agents.tech_agent import TechAgent
 from agents.market_agent import MarketAgent
+from agents.finance_agent import FinanceAgent
 
+# 에이전트 초기화
 search = SearchAgent(model="gpt-4")
 tech = TechAgent(model="gpt-4")
 market = MarketAgent(model="gpt-4")
-finance = MarketAgent(model="gpt-4")
+finance = FinanceAgent(model="gpt-4")
 
+# 워크플로우 정의
 workflow = StateGraph(dict)
 workflow.add_node("Search", search)
 workflow.add_node("Tech", tech)
@@ -17,8 +20,8 @@ workflow.add_node("Finance", finance)
 workflow.set_entry_point("Search")
 workflow.add_edge("Search", "Tech")
 workflow.add_edge("Tech", "Market")
-workflow.add_edge("Market", "Finance")
-workflow.set_finish_point("Finance")
+workflow.add_edge("Search", "Finance")
+workflow.set_finish_point(["Market", "Finance"])
 
 app = workflow.compile()
 
@@ -29,8 +32,18 @@ def analyze_startups(file_path):
         for row in reader:
             startup_name = row["스타트업"]
             print(f"Analyzing startup: {startup_name}")
-            result = app.invoke({"startup_name": startup_name})
-            results.append({"startup_name": startup_name, "result": result})
+
+            # 워크플로우를 한 번만 실행
+            workflow_result = app.invoke({"startup_name": startup_name})
+
+            # 디버깅: 각 노드의 출력 확인
+            print(f"Workflow result for {startup_name}: {workflow_result}")
+
+            # 결과 저장
+            results.append({
+                "startup_name": startup_name,
+                "result": workflow_result
+            })
     return results
 
 if __name__ == "__main__":

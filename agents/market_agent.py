@@ -75,6 +75,7 @@ class MarketAgent(Runnable):
 
     def invoke(self, input_data: dict, config=None) -> dict:
         tech = input_data.get("tech_summary", "").strip()
+        startup_name = input_data.get("startup_name", "").strip()
         if not tech:
             return {"market_analysis": "MarketAgent: tech_summary가 없습니다."}
 
@@ -93,4 +94,4 @@ class MarketAgent(Runnable):
         print("시장성 분석을 생성 중입니다.")
         result = ask_with_context(prompt, context, model=self.model)
 
-        return {"market_analysis": result}
+        return {"market_analysis": result, "startup_name": startup_name}

@@ -80,7 +80,9 @@ class SearchAgent(Runnable):
         self.model = model
 
     def invoke(self, input_data: dict, config=None) -> dict:
-        name = input_data["startup_name"]
+        name = input_data.get("startup_name", "").strip()
+        if not name:
+            return {"search_docs": "SearchAgent: startup_name이 없습니다."}
 
         print(f"검색 중: {name}")
         docs = web_search(name)
@@ -88,4 +90,4 @@ class SearchAgent(Runnable):
         print("문서를 벡터 저장소에 저장합니다.")
         store_documents(docs)
 
-        return {"search_docs": docs}
+        return {"search_docs": docs, "startup_name": name}
