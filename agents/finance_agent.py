@@ -1,28 +1,41 @@
-import os
-import pandas as pd
-from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
-import chromadb
 from langchain_core.runnables import Runnable
-from models.llm_wrapper import ask_with_context
 from prompts.prompt import FINANCE_AGENT_PROMPT
+from models.llm_wrapper import ask_with_context
 
-# 환경 변수 로드 및 모델 초기화
+# 웹 검색 (Serper API)
+import os
+import requests
+from dotenv import load_dotenv
 load_dotenv()
-embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Chroma 클라이언트 초기화
-chroma_client = chromadb.Client()
-collection = chroma_client.get_or_create_collection("finance_docs")
+def web_search(query: str, max_results=5) -> list[str]:
+    api_key = os.getenv("SERPER_API_KEY")
+    if not api_key:
+        raise ValueError("SERPER_API_KEY가 .env에 정의되어 있지 않습니다.")
 
-# 기업 정보 문서화
-def format_company_doc(row):
-    return f"""
-    [기업명]: {row['스타트업']}
-    [분야]: {row['분야']}
-    [특징]: {row['특징']}
-    [성장 포인트]: {row['성장 포인트']}
-    """
+    url = "https://google.serper.dev/search"
+    headers = {"X-API-KEY": api_key}
+    payload = {"q": query}
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        raise Exception(f"Serper API 호출 실패: {response.status_code} {response.text}")
+
+    data = response.json()
+    results = []
+
+    if "organic" in data:
+        for item in data["organic"][:max_results]:
+            if "snippet" in item:
+                results.append(item["snippet"])
+            elif "title" in item:
+                results.append(item["title"])
+
+    if not results:
+        results.append("재무 관련 검색 결과가 없습니다.")
+
+    return results
 
 # FinanceAgent 정의
 class FinanceAgent(Runnable):
@@ -30,47 +43,16 @@ class FinanceAgent(Runnable):
         self.model = model
 
     def invoke(self, input_data: dict, config=None) -> dict:
-        print(f"FinanceAgent input_data: {input_data}")
-        startup_name = input_data.get("startup_name", "").strip()
-        if not startup_name:
-            return {"finance_analysis": "FinanceAgent: startup_name이 없습니다."}
-    
-        print(f"🔍 {startup_name}의 재무 분석을 시작합니다.")
-    
-        # 유사 기업 검색
-        query_doc = format_company_doc({"스타트업": startup_name, "분야": "", "특징": "",   "성장 포인트": ""})
-        query_embedding = embed_model.encode(query_doc).tolist()
-    
-        results = collection.query(query_embeddings=[query_embedding], n_results=4)
-        
-        # 💥 여기서 평탄화
-        context_docs = [doc for sublist in results["documents"] for doc in sublist]
-    
-        if not context_docs:
-            return {"finance_analysis": "유사한 기업 정보를 찾을 수 없습니다."}
-    
-        # 프롬프트 생성
-        context = "\n\n".join(context_docs)
-        prompt = FINANCE_AGENT_PROMPT.replace("{{context}}", context).replace(" {{startup_name}}", startup_name)
-    
-        # OpenAI API 호출
-        print(f"💡 {startup_name}의 재무 분석 생성 중...")
-        result = ask_with_context(prompt, context=context_docs, model=self.model)
-    
-        return {"finance_analysis": result}
+        name = input_data.get("startup_name", "").strip()
+        if not name:
+            return {"finance_summary": "FinanceAgent: startup_name이 없습니다."}
 
-# 데이터 초기화 함수
-def initialize_finance_data(file_path):
-    data = pd.read_csv(file_path)
+        print("재무 관련 정보를 웹에서 검색합니다.")
+        docs = web_search(f"{name} 투자 유치 수익 매출 성장률")
 
-    # Chroma에 기업 정보 저장
-    for _, row in data.iterrows():
-        doc = format_company_doc(row)
-        embedding = embed_model.encode(doc).tolist()
-        collection.add(
-            documents=[doc],
-            metadatas=[{"name": row["스타트업"]}],
-            ids=[row["스타트업"]],
-            embeddings=[embedding]
-        )
-    print("✅ FinanceAgent 데이터 초기화 완료!")
+        prompt = FINANCE_AGENT_PROMPT.replace("{{search_result}}", "\n".join(docs))
+
+        print("재무 상태 분석을 생성합니다.")
+        result = ask_with_context(prompt, context=[], model=self.model)
+
+        return {"finance_summary": result}
