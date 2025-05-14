@@ -50,15 +50,19 @@ client = chromadb.Client()
 collection = client.get_or_create_collection("search_docs")
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
+import time
+
 def store_documents(docs: list[str]):
     """
     문서들을 임베딩하여 벡터 저장소에 저장합니다.
     """
     embeddings = embed_model.encode(docs).tolist()
+    timestamp = int(time.time())  # 현재 타임스탬프
     for i, doc in enumerate(docs):
+        unique_id = f"doc_{timestamp}_{i}"  # 타임스탬프와 인덱스를 결합
         collection.add(
             documents=[doc],
-            ids=[f"doc_{i}"],
+            ids=[unique_id],
             embeddings=[embeddings[i]]
         )
 
@@ -84,7 +88,4 @@ class SearchAgent(Runnable):
         print("문서를 벡터 저장소에 저장합니다.")
         store_documents(docs)
 
-        return {
-            "search_docs": docs,        # 사용자가 확인 가능
-            "startup_name": name        # TechAgent 전달용
-        }
+        return {"search_docs": docs}
